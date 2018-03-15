@@ -1,6 +1,6 @@
 # 2.8.8 required to use PROTOBUF_IMPORT_DIRS
 cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
-FIND_PACKAGE( Boost COMPONENTS system REQUIRED )
+FIND_PACKAGE( Boost COMPONENTS system filesystem REQUIRED )
 FIND_PACKAGE( OpenCV REQUIRED )
 set (CMAKE_CXX_FLAGS "-g -Wall -std=c++11")
 
@@ -27,8 +27,11 @@ target_link_libraries(
 # Spawner client
 add_executable (
     pattern_generation_test
-    src/tests/pattern_generation_test.cpp)
+    src/tests/pattern_generation_test.cpp
+)
+
 target_link_libraries(
     pattern_generation_test
     pattern_generation
-    ${Boost_LIBRARIES} ${OpenCV_LIBS})
+    ${Boost_LIBRARIES} ${OpenCV_LIBS}
+)

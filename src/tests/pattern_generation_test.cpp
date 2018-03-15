@@ -1,3 +1,28 @@
+/*
+ *  Copyright (C) 2018 João Borrego and Rui Figueiredo
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *  
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *      
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+/*!
+
+    \brief Generic for pattern generation
+
+    \author Rui Figueiredo : ruipimentelfigueiredo
+    \author João Borrego   : jsbruglie
+
+*/
+
 #include <sstream>
 #include <string>
 
@@ -5,6 +30,21 @@
 
 /* File streams */
 #include <fstream>
+
+// C libraries
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <boost/filesystem.hpp>
+
+// C++ libraries
+
+// I/O streams
+#include <iostream>
+// File system
+#include <boost/filesystem.hpp>
+
 
 /* Media output directory */
 #define MEDIA_DIR "../../media/materials/"
@@ -19,10 +59,71 @@
 #define MATERIAL_EXT ".material"
 
 /* Show image GUI */
-#define SHOW_IMGS true
+#define SHOW_IMGS false
 
 /* Generate .material script */
 #define GENERATE_SCRIPT true
+
+/// Default number of scenes
+#define ARG_SCENES_DEFAULT      10
+/// Default index of the first scene
+#define ARG_START_DEFAULT       0
+/// Default image directory
+#define ARG_IMG_RESOLUTION_DEFAULT    500
+/// Default dataset directory
+#define ARG_DATASET_DIR_DEFAULT "dataset"
+
+//////////////////////////////////////////////////
+const std::string getUsage(const char* argv_0)
+{
+    return \
+        "usage:   " + std::string(argv_0) + " [options]\n" +
+        "options: -n <number of scenes to generate>\n"  +
+        "         -s <index of the first scene>\n" +
+        "         -d <dataset output directory>\n" +
+        "         -r <images resolution>\n";
+}
+
+
+void parseArgs(
+    int argc,
+    char** argv,
+    unsigned int & scenes,
+    unsigned int & start,
+    std::string & dataset,
+    unsigned int & resolution)
+{
+
+    int opt;
+    bool d, s, r;
+
+    while ((opt = getopt(argc,argv,"n: d: t: s: r:")) != EOF)
+    {
+        switch (opt)
+        {
+            case 'n':
+                scenes = atoi(optarg); break;
+            case 'd':
+                d = true; dataset = optarg;    break;
+            case 't':
+                std::cerr << getUsage(argv[0]);
+            case 's':
+                s = true; s = optarg;    break;
+            case 'r':
+                r = true; resolution = atoi(optarg);    break;
+            default:
+                std::cout << std::endl;
+                exit(EXIT_FAILURE);
+        }
+    }
+
+    // If arg was not set then assign default values
+    if (!s) scenes      = ARG_SCENES_DEFAULT;
+    if (!d) dataset    = ARG_DATASET_DIR_DEFAULT;
+    if (!r) resolution    = ARG_IMG_RESOLUTION_DEFAULT;
+}
+
+
 
 void genScript(const std::string material_name, const std::string & SCRIPTS_DIR){
 
@@ -59,20 +160,31 @@ void genScript(const std::string material_name, const std::string & SCRIPTS_DIR)
 
 int main(int argc, char **argv)
 {
-    if(argc<3)
-    {
-        std::cout << "invalid number of arguments"<< std::endl;
-        exit(-1);
-    }
+    // Command-line arguments
+    unsigned int scenes {0};
+    unsigned int start {0};
+    unsigned int resolution {0};
+    std::string media_dir;
+    std::string dataset_dir;
+
 
     /* Number of images per class of texture */
-    int images_per_class = atoi(argv[1]);
 
     /* root directory */
-    std::string media_dir = std::string(argv[2]);
 
+    parseArgs(argc, argv, scenes, start, media_dir, resolution);
     std::string TEXTURES_DIR=media_dir+"textures/";
     std::string SCRIPTS_DIR=media_dir+"scripts/";
+
+    boost::filesystem::path textures_dir(TEXTURES_DIR);
+    if(boost::filesystem::create_directory(textures_dir)) {
+	std::cout << "created " << TEXTURES_DIR << " folder"<< "\n";
+    }
+
+    boost::filesystem::path scripts_dir(SCRIPTS_DIR);
+    if(boost::filesystem::create_directory(scripts_dir)) {
+	std::cout << "created " << SCRIPTS_DIR << " folder"<< "\n";
+    }
 
     /* Initialize random device */
     std::random_device rd;
@@ -89,7 +201,7 @@ int main(int argc, char **argv)
     std::stringstream material_name;
     std::stringstream img_filename;
 
-    for (int i = 0; i < images_per_class; ++i)
+    for (unsigned int i = 0; i < scenes; ++i)
     {
         /* Generate square texture */
 

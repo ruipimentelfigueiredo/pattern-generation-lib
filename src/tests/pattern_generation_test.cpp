@@ -153,9 +153,9 @@ cv::Mat generateFlatTexture(PatternGeneration & pattern_generation, unsigned int
 
 	if (SHOW_IMGS)
 	    cv::imshow("Flat texture", flat_texture);
-}
+};
 
-cv::Mat generateSquareTexture(PatternGeneration & pattern_generation, unsigned int & resolution, const unsigned int & i, std::string & TEXTURES_DIR, std::string & SCRIPTS_DIR)
+cv::Mat generateChessTexture(PatternGeneration & pattern_generation, unsigned int & resolution, const unsigned int & i, std::string & TEXTURES_DIR, std::string & SCRIPTS_DIR)
 {
 	/* Initialize random device */
 	std::random_device rd;
@@ -198,7 +198,7 @@ cv::Mat generateSquareTexture(PatternGeneration & pattern_generation, unsigned i
 
 	if (SHOW_IMGS)
 	    cv::imshow("Chess board", chess_board);
-}
+};
 
 
 cv::Mat generateGradientTexture(PatternGeneration & pattern_generation, unsigned int & resolution, const unsigned int & i, std::string & TEXTURES_DIR, std::string & SCRIPTS_DIR)
@@ -224,7 +224,42 @@ cv::Mat generateGradientTexture(PatternGeneration & pattern_generation, unsigned
 
 	if (SHOW_IMGS)
 	    cv::imshow("Gradient texture", gradient_texture);
-}
+};
+
+cv::Mat generatePerlinTexture(PatternGeneration & pattern_generation, unsigned int & resolution, const unsigned int & i, std::string & TEXTURES_DIR, std::string & SCRIPTS_DIR)
+{
+        std::stringstream material_name;
+        std::stringstream img_filename;
+	static std::random_device rd;
+	static std::mt19937 mt(rd());
+	static std::uniform_int_distribution<int> dist;
+	/* Generate perlin noise texture */
+	double z1=((double) dist(mt) / (RAND_MAX));
+	double z2=((double) dist(mt) / (RAND_MAX));
+	double z3=((double) dist(mt) / (RAND_MAX));
+	srand(time(0));
+	int randomval = dist(mt) % 2;
+
+	cv::Mat perlin_texture = pattern_generation.getPerlinNoiseTexture(resolution,randomval,z1,z2,z3);
+
+	material_name.str(std::string());
+	img_filename.str(std::string());
+
+	material_name << "perlin_" << std::to_string(i);
+	img_filename << TEXTURES_DIR << material_name.str() << ".jpg";
+
+	if (!cv::imwrite(img_filename.str(), perlin_texture)){
+	std::cout << "[ERROR] Could not save " << img_filename.str() <<
+	    ". Please ensure the destination folder exists!" << std::endl;
+	    exit(EXIT_FAILURE);
+	}
+	genScript(material_name.str(), SCRIPTS_DIR);
+
+	if (SHOW_IMGS)
+	    cv::imshow("Perlin noise texture", perlin_texture);
+
+};
+
 
 void parseArgs(
     int argc,
@@ -237,7 +272,7 @@ void parseArgs(
 {
 
     int opt;
-    bool d, t, n, i, s, r;
+    bool d, t, i, s, r;
 
     while ( (opt = getopt(argc,argv,"n: d: t: s: r: h: i:")) != EOF)
     {
@@ -310,44 +345,54 @@ int main(int argc, char **argv)
 
     std::stringstream material_name;
     std::stringstream img_filename;
-    if(type=="all")
+
+    for (unsigned int i = start; i < scenes; ++i)
     {
-	    for (unsigned int i = start; i < scenes; ++i)
-	    {
+	      if(type=="all")
+              {
                 /* Generate flat texture */
 		generateFlatTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
-
-
+                /* Generate chess texture */
+		generateChessTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
 		/* Generate gradient texture */
 		generateGradientTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
-
 		/* Generate perlin noise texture */
-		double z1=((double) dist(mt) / (RAND_MAX));
-		double z2=((double) dist(mt) / (RAND_MAX));
-		double z3=((double) dist(mt) / (RAND_MAX));
-		srand(time(0));
-		int randomval = dist(mt) % 2;
-
-		cv::Mat perlin_texture = pattern_generation.getPerlinNoiseTexture(resolution,randomval,z1,z2,z3);
-
-		material_name.str(std::string());
-		img_filename.str(std::string());
-
-		material_name << "perlin_" << std::to_string(i);
-		img_filename << TEXTURES_DIR << material_name.str() << ".jpg";
-
-		if (!cv::imwrite(img_filename.str(), perlin_texture)){
-		std::cout << "[ERROR] Could not save " << img_filename.str() <<
-		    ". Please ensure the destination folder exists!" << std::endl;
-		    exit(EXIT_FAILURE);
-		}
-		genScript(material_name.str(), SCRIPTS_DIR);
-
-		if (SHOW_IMGS)
-		    cv::imshow("Perlin noise texture", perlin_texture);
-	    }
-    }
-    
+		generatePerlinTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+              }
+	      else if(type=="perlin")
+              {
+		/* Generate perlin noise texture */
+		generatePerlinTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+              }
+	      else if(type=="gradient")
+              {
+		/* Generate gradient texture */
+		generateGradientTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+              }
+	      else if(type=="flat")
+	      {
+                /* Generate flat texture */
+		generateFlatTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+	      }
+	      else if(type=="chess")
+	      {
+                /* Generate chess texture */
+		generateChessTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+	      }
+	      // you can have any number of case statements.
+	      else
+              {
+                /* Generate flat texture */
+		generateFlatTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+                /* Generate chess texture */
+		generateChessTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+		/* Generate gradient texture */
+		generateGradientTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+		/* Generate perlin noise texture */
+		generatePerlinTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+              }
+	    
+    } 
 
     return 0;
 }

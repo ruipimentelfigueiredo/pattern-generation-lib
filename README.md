@@ -18,10 +18,11 @@ Simply clone the repository and build from source, with a traditional CMake buil
 We provide a test script to generate textures:
 ```
 usage:   ./build/pattern_generation_test [options]
-options: -n <number of scenes to generate>
-         -s <index of the first scene>
-         -d <textures output directory>
-         -r <images resolution> 
+options: -n <number of textures generate>
+         -i <index of the first texure>
+         -d <output directory>
+         -t <texture type>
+         -r <image resolution>
 ```
 
 [Gazebo]: http://gazebosim.org/

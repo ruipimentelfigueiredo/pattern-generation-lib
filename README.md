@@ -1,9 +1,9 @@
 # pattern-generation-lib
 
 This is a simple library to generate textures with given pattern templates, namely flat, gradient, checkerboard and Perlin noise.
-These textures are fully compatible with [Gazebo] robotics simulator and consist of a genrated image file and material description.
+These textures are fully compatible with [Gazebo] robotics simulator and consist of a generated image file and material description.
 
-This repository was originially designed as a support tool for [GAP] - a set of tools to interact programatically with Gazebo for automatic dataset generation.
+This repository was originally designed as a support tool for [GAP] - a set of tools to interact programatically with Gazebo for automatic dataset generation.
 
 ### Dependencies
 

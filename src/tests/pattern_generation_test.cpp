@@ -88,7 +88,7 @@ void genScript(const std::string material_name, const std::string & SCRIPTS_DIR)
         << std::endl << "      }"
         << std::endl << "    }"
         << std::endl << "  }"
-        << std::endl << "}";
+        << std::endl << "}" << std::endl;
 
         file_path << SCRIPTS_DIR << material_name << MATERIAL_EXT;
 

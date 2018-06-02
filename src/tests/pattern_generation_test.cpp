@@ -138,7 +138,11 @@ void generateFlatTexture(PatternGeneration & pattern_generation, unsigned int & 
 };
 
 //////////////////////////////////////////////////
-void generateChessTexture(PatternGeneration & pattern_generation, unsigned int & resolution, const unsigned int & i, std::string & TEXTURES_DIR, std::string & SCRIPTS_DIR)
+void generateChessTexture(PatternGeneration & pattern_generation,
+    unsigned int & resolution,
+    const unsigned int & i,
+    std::string & TEXTURES_DIR,
+    std::string & SCRIPTS_DIR)
 {
     /* Initialize random device */
     std::random_device rd;
@@ -182,7 +186,11 @@ void generateChessTexture(PatternGeneration & pattern_generation, unsigned int &
 };
 
 //////////////////////////////////////////////////
-void generateGradientTexture(PatternGeneration & pattern_generation, unsigned int & resolution, const unsigned int & i, std::string & TEXTURES_DIR, std::string & SCRIPTS_DIR)
+void generateGradientTexture(PatternGeneration & pattern_generation,
+    unsigned int & resolution,
+    const unsigned int & i,
+    std::string & TEXTURES_DIR,
+    std::string & SCRIPTS_DIR)
 {
     std::stringstream material_name;
     std::stringstream img_filename;
@@ -217,9 +225,9 @@ void generatePerlinTexture(PatternGeneration & pattern_generation, unsigned int 
     static std::mt19937 mt(rd());
     static std::uniform_int_distribution<int> dist;
     /* Generate perlin noise texture */
-    double z1=((double) dist(mt) / (RAND_MAX));
-    double z2=((double) dist(mt) / (RAND_MAX));
-    double z3=((double) dist(mt) / (RAND_MAX));
+    double z1 = ((double) dist(mt) / (RAND_MAX));
+    double z2 = ((double) dist(mt) / (RAND_MAX));
+    double z3 = ((double) dist(mt) / (RAND_MAX));
     srand(time(0));
     int randomval = dist(mt) % 2;
 

@@ -46,14 +46,18 @@
 /// Default image file extension
 #define IMG_EXT         ".png"
 /// Material name prefix
-#define MATERIAL_PREFIX "Plugin/"
+#define MATERIAL_PREFIX "HDPlugin/"
 /// Material name extension
 #define MATERIAL_EXT    ".material"
+/// Texture path prefix
+#define TEXTURE_PREFIX  "HDPlugin/"
 
 /// Show image GUI
 #define SHOW_IMGS       false
 /// Generate .material script
 #define GENERATE_SCRIPT true
+/// Generate images
+#define GENERATE_IMG    true
 
 /// Default number of textures
 #define ARG_TEXTURES_DEFAULT        10
@@ -82,7 +86,7 @@ void genScript(const std::string material_name, const std::string & SCRIPTS_DIR)
         << std::endl << "    {"
         << std::endl << "      texture_unit"
         << std::endl << "      {"
-        << std::endl << "        texture " << material_name << IMG_EXT
+        << std::endl << "        texture " << TEXTURE_PREFIX << material_name << IMG_EXT
         << std::endl << "        filtering anistropic"
         << std::endl << "        max_anisotropy 16"
         << std::endl << "      }"
@@ -113,25 +117,25 @@ const std::string getUsage(const char* argv_0)
 
 //////////////////////////////////////////////////
 void generateFlatTexture(PatternGeneration & pattern_generation, unsigned int & resolution, const unsigned int & i, std::string & TEXTURES_DIR, std::string & SCRIPTS_DIR)
-{
-    cv::Scalar flat_color = pattern_generation.getRandomColor();
-    cv::Mat flat_texture = pattern_generation.getFlatTexture(flat_color,resolution);
-
+{	 
     std::stringstream material_name;
     std::stringstream img_filename;
-
     material_name.str(std::string());
     img_filename.str(std::string());
-
     material_name << "flat_" << std::to_string(i);
     img_filename << TEXTURES_DIR << material_name.str() << IMG_EXT;
+
+    genScript(material_name.str(), SCRIPTS_DIR);
+    if (!GENERATE_IMG) return;
+ 
+    cv::Scalar flat_color = pattern_generation.getRandomColor();
+    cv::Mat flat_texture = pattern_generation.getFlatTexture(flat_color,resolution);
 
     if (!cv::imwrite(img_filename.str(), flat_texture)){
         std::cout << "[ERROR] Could not save " << img_filename.str() <<
         ". Please ensure the destination folder exists!" << std::endl;
         exit(EXIT_FAILURE);
     }
-    genScript(material_name.str(), SCRIPTS_DIR);
 
     if (SHOW_IMGS)
         cv::imshow("Flat texture", flat_texture);
@@ -144,6 +148,16 @@ void generateChessTexture(PatternGeneration & pattern_generation,
     std::string & TEXTURES_DIR,
     std::string & SCRIPTS_DIR)
 {
+    std::stringstream material_name;
+    std::stringstream img_filename;
+    material_name.str(std::string());
+    img_filename.str(std::string());
+    material_name << "chess_" << std::to_string(i);
+    img_filename << TEXTURES_DIR << material_name.str() << IMG_EXT;
+    
+    genScript(material_name.str(), SCRIPTS_DIR);
+    if (!GENERATE_IMG) return;
+
     /* Initialize random device */
     std::random_device rd;
     std::mt19937 mt(rd());
@@ -164,22 +178,11 @@ void generateChessTexture(PatternGeneration & pattern_generation,
     // Convert to HSV
     cv::applyColorMap(chess_board, chess_board, cv::COLORMAP_HSV);
 
-    std::stringstream material_name;
-    std::stringstream img_filename;
-
-    /* Reset string stream values */
-    material_name.str(std::string());
-    img_filename.str(std::string());
-
-    material_name << "chess_" << std::to_string(i);
-    img_filename << TEXTURES_DIR << material_name.str() << IMG_EXT;
-
     if (!cv::imwrite(img_filename.str(), chess_board)){
         std::cout << "[ERROR] Could not save " << img_filename.str() <<
         ". Please ensure the destination folder exists!" << std::endl;
         exit(EXIT_FAILURE);
     }
-    genScript(material_name.str(), SCRIPTS_DIR);
 
     if (SHOW_IMGS)
         cv::imshow("Chess board", chess_board);
@@ -194,23 +197,23 @@ void generateGradientTexture(PatternGeneration & pattern_generation,
 {
     std::stringstream material_name;
     std::stringstream img_filename;
+    material_name.str(std::string());
+    img_filename.str(std::string());
+    material_name << "gradient_" << std::to_string(i);
+    img_filename << TEXTURES_DIR << material_name.str() << IMG_EXT;
+
+    genScript(material_name.str(), SCRIPTS_DIR);
+    if (!GENERATE_IMG) return;
 
     cv::Scalar gradient_color_1 = pattern_generation.getRandomColor();
     cv::Scalar gradient_color_2 = pattern_generation.getRandomColor();
     cv::Mat gradient_texture = pattern_generation.getGradientTexture(gradient_color_1, gradient_color_2, resolution, false);
-
-    material_name.str(std::string());
-    img_filename.str(std::string());
-
-    material_name << "gradient_" << std::to_string(i);
-    img_filename << TEXTURES_DIR << material_name.str() << IMG_EXT;
 
     if (!cv::imwrite(img_filename.str(), gradient_texture)){
     std::cout << "[ERROR] Could not save " << img_filename.str() <<
         ". Please ensure the destination folder exists!" << std::endl;
         exit(EXIT_FAILURE);
     }
-    genScript(material_name.str(), SCRIPTS_DIR);
 
     if (SHOW_IMGS)
         cv::imshow("Gradient texture", gradient_texture);
@@ -221,6 +224,14 @@ void generatePerlinTexture(PatternGeneration & pattern_generation, unsigned int 
 {
     std::stringstream material_name;
     std::stringstream img_filename;
+    material_name.str(std::string());
+    img_filename.str(std::string());
+    material_name << "perlin_" << std::to_string(i);
+    img_filename << TEXTURES_DIR << material_name.str() << IMG_EXT;
+
+    genScript(material_name.str(), SCRIPTS_DIR);
+    if (!GENERATE_IMG) return;
+
     static std::random_device rd;
     static std::mt19937 mt(rd());
     static std::uniform_int_distribution<int> dist;
@@ -233,18 +244,11 @@ void generatePerlinTexture(PatternGeneration & pattern_generation, unsigned int 
 
     cv::Mat perlin_texture = pattern_generation.getPerlinNoiseTexture(resolution,randomval,z1,z2,z3);
 
-    material_name.str(std::string());
-    img_filename.str(std::string());
-
-    material_name << "perlin_" << std::to_string(i);
-    img_filename << TEXTURES_DIR << material_name.str() << IMG_EXT;
-
     if (!cv::imwrite(img_filename.str(), perlin_texture)){
     std::cout << "[ERROR] Could not save " << img_filename.str() <<
         ". Please ensure the destination folder exists!" << std::endl;
         exit(EXIT_FAILURE);
     }
-    genScript(material_name.str(), SCRIPTS_DIR);
 
     if (SHOW_IMGS)
         cv::imshow("Perlin noise texture", perlin_texture);

@@ -58,7 +58,7 @@
 /// Generate .material script
 #define GENERATE_SCRIPT true
 /// Generate images
-#define GENERATE_IMG    false
+#define GENERATE_IMG    true
 
 /// Default number of textures
 #define ARG_TEXTURES_DEFAULT        10

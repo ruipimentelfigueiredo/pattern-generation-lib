@@ -38,26 +38,27 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 #include <string>
 // File system
 #include <boost/filesystem.hpp>
 
 
 /// Default image file extension
-#define IMG_EXT         ".png"
+#define IMG_EXT         ".jpg"
 /// Material name prefix
-#define MATERIAL_PREFIX "HDPlugin/"
+#define MATERIAL_PREFIX "Plugin/"
 /// Material name extension
 #define MATERIAL_EXT    ".material"
 /// Texture path prefix
-#define TEXTURE_PREFIX  "HDPlugin/"
+#define TEXTURE_PREFIX  "Plugin/"
 
 /// Show image GUI
 #define SHOW_IMGS       false
 /// Generate .material script
 #define GENERATE_SCRIPT true
 /// Generate images
-#define GENERATE_IMG    true
+#define GENERATE_IMG    false
 
 /// Default number of textures
 #define ARG_TEXTURES_DEFAULT        10
@@ -70,7 +71,10 @@
 /// Default image file extension
 #define ARG_TYPE_DEFAULT            "all"
 
-void genScript(const std::string material_name, const std::string & SCRIPTS_DIR){
+void genScript(
+    const std::string material_name,
+    const std::string image_name,
+    const std::string & scripts_dir){
 
     std::stringstream script_str;
     std::stringstream file_path;
@@ -86,7 +90,7 @@ void genScript(const std::string material_name, const std::string & SCRIPTS_DIR)
         << std::endl << "    {"
         << std::endl << "      texture_unit"
         << std::endl << "      {"
-        << std::endl << "        texture " << TEXTURE_PREFIX << material_name << IMG_EXT
+        << std::endl << "        texture " << TEXTURE_PREFIX << image_name
         << std::endl << "        filtering anistropic"
         << std::endl << "        max_anisotropy 16"
         << std::endl << "      }"
@@ -94,13 +98,33 @@ void genScript(const std::string material_name, const std::string & SCRIPTS_DIR)
         << std::endl << "  }"
         << std::endl << "}" << std::endl;
 
-        file_path << SCRIPTS_DIR << material_name << MATERIAL_EXT;
+        file_path << scripts_dir << material_name << MATERIAL_EXT;
 
         /* Write to file */
         std::ofstream ofs(file_path.str());
         ofs << script_str.str();
         ofs.close();
     }
+}
+
+void genNames(const char* prefix,
+    const int index,
+    const std::string & textures_dir,
+    std::string & material,
+    std::string & image,
+    std::string & image_file)
+{
+    std::stringstream s_mat, s_img, s_file;
+    s_mat.str(std::string());
+    s_img.str(std::string());
+    s_file.str(std::string());
+    s_mat << prefix << std::setw(6) << std::setfill('0') << std::to_string(index);
+    s_img << prefix << std::to_string(index) << IMG_EXT;
+    s_file << textures_dir << s_img.str();
+
+    material = s_mat.str();
+    image = s_img.str();
+    image_file = s_file.str();
 }
 
 //////////////////////////////////////////////////
@@ -116,23 +140,22 @@ const std::string getUsage(const char* argv_0)
 }
 
 //////////////////////////////////////////////////
-void generateFlatTexture(PatternGeneration & pattern_generation, unsigned int & resolution, const unsigned int & i, std::string & TEXTURES_DIR, std::string & SCRIPTS_DIR)
-{	 
-    std::stringstream material_name;
-    std::stringstream img_filename;
-    material_name.str(std::string());
-    img_filename.str(std::string());
-    material_name << "flat_" << std::to_string(i);
-    img_filename << TEXTURES_DIR << material_name.str() << IMG_EXT;
-
-    genScript(material_name.str(), SCRIPTS_DIR);
+void generateFlatTexture(PatternGeneration & pattern_generation,
+    unsigned int & resolution,
+    const unsigned int & i,
+    std::string & textures_dir,
+    std::string & scripts_dir)
+{    
+    std::string material_name, img_name, img_filename;
+    genNames("flat_", i, textures_dir, material_name, img_name, img_filename);
+    genScript(material_name, img_name, scripts_dir);
     if (!GENERATE_IMG) return;
  
     cv::Scalar flat_color = pattern_generation.getRandomColor();
     cv::Mat flat_texture = pattern_generation.getFlatTexture(flat_color,resolution);
 
-    if (!cv::imwrite(img_filename.str(), flat_texture)){
-        std::cout << "[ERROR] Could not save " << img_filename.str() <<
+    if (!cv::imwrite(img_filename, flat_texture)){
+        std::cout << "[ERROR] Could not save " << img_filename <<
         ". Please ensure the destination folder exists!" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -145,17 +168,12 @@ void generateFlatTexture(PatternGeneration & pattern_generation, unsigned int & 
 void generateChessTexture(PatternGeneration & pattern_generation,
     unsigned int & resolution,
     const unsigned int & i,
-    std::string & TEXTURES_DIR,
-    std::string & SCRIPTS_DIR)
+    std::string & textures_dir,
+    std::string & scripts_dir)
 {
-    std::stringstream material_name;
-    std::stringstream img_filename;
-    material_name.str(std::string());
-    img_filename.str(std::string());
-    material_name << "chess_" << std::to_string(i);
-    img_filename << TEXTURES_DIR << material_name.str() << IMG_EXT;
-    
-    genScript(material_name.str(), SCRIPTS_DIR);
+    std::string material_name, img_name, img_filename;
+    genNames("chess_", i, textures_dir, material_name, img_name, img_filename);
+    genScript(material_name, img_name, scripts_dir);
     if (!GENERATE_IMG) return;
 
     /* Initialize random device */
@@ -178,8 +196,8 @@ void generateChessTexture(PatternGeneration & pattern_generation,
     // Convert to HSV
     cv::applyColorMap(chess_board, chess_board, cv::COLORMAP_HSV);
 
-    if (!cv::imwrite(img_filename.str(), chess_board)){
-        std::cout << "[ERROR] Could not save " << img_filename.str() <<
+    if (!cv::imwrite(img_filename, chess_board)){
+        std::cout << "[ERROR] Could not save " << img_filename <<
         ". Please ensure the destination folder exists!" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -192,25 +210,20 @@ void generateChessTexture(PatternGeneration & pattern_generation,
 void generateGradientTexture(PatternGeneration & pattern_generation,
     unsigned int & resolution,
     const unsigned int & i,
-    std::string & TEXTURES_DIR,
-    std::string & SCRIPTS_DIR)
+    std::string & textures_dir,
+    std::string & scripts_dir)
 {
-    std::stringstream material_name;
-    std::stringstream img_filename;
-    material_name.str(std::string());
-    img_filename.str(std::string());
-    material_name << "gradient_" << std::to_string(i);
-    img_filename << TEXTURES_DIR << material_name.str() << IMG_EXT;
-
-    genScript(material_name.str(), SCRIPTS_DIR);
+    std::string material_name, img_name, img_filename;
+    genNames("chess_", i, textures_dir, material_name, img_name, img_filename);
+    genScript(material_name, img_name, scripts_dir);
     if (!GENERATE_IMG) return;
 
     cv::Scalar gradient_color_1 = pattern_generation.getRandomColor();
     cv::Scalar gradient_color_2 = pattern_generation.getRandomColor();
     cv::Mat gradient_texture = pattern_generation.getGradientTexture(gradient_color_1, gradient_color_2, resolution, false);
 
-    if (!cv::imwrite(img_filename.str(), gradient_texture)){
-    std::cout << "[ERROR] Could not save " << img_filename.str() <<
+    if (!cv::imwrite(img_filename, gradient_texture)){
+    std::cout << "[ERROR] Could not save " << img_filename <<
         ". Please ensure the destination folder exists!" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -220,16 +233,11 @@ void generateGradientTexture(PatternGeneration & pattern_generation,
 };
 
 //////////////////////////////////////////////////
-void generatePerlinTexture(PatternGeneration & pattern_generation, unsigned int & resolution, const unsigned int & i, std::string & TEXTURES_DIR, std::string & SCRIPTS_DIR)
+void generatePerlinTexture(PatternGeneration & pattern_generation, unsigned int & resolution, const unsigned int & i, std::string & textures_dir, std::string & scripts_dir)
 {
-    std::stringstream material_name;
-    std::stringstream img_filename;
-    material_name.str(std::string());
-    img_filename.str(std::string());
-    material_name << "perlin_" << std::to_string(i);
-    img_filename << TEXTURES_DIR << material_name.str() << IMG_EXT;
-
-    genScript(material_name.str(), SCRIPTS_DIR);
+    std::string material_name, img_name, img_filename;
+    genNames("perlin_", i, textures_dir, material_name, img_name, img_filename);
+    genScript(material_name, img_name, scripts_dir);
     if (!GENERATE_IMG) return;
 
     static std::random_device rd;
@@ -244,8 +252,8 @@ void generatePerlinTexture(PatternGeneration & pattern_generation, unsigned int 
 
     cv::Mat perlin_texture = pattern_generation.getPerlinNoiseTexture(resolution,randomval,z1,z2,z3);
 
-    if (!cv::imwrite(img_filename.str(), perlin_texture)){
-    std::cout << "[ERROR] Could not save " << img_filename.str() <<
+    if (!cv::imwrite(img_filename, perlin_texture)){
+    std::cout << "[ERROR] Could not save " << img_filename <<
         ". Please ensure the destination folder exists!" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -308,17 +316,17 @@ int main(int argc, char **argv)
 
     /* root directory */
     parseArgs(argc, argv, textures, start, media_dir, resolution, type);
-    std::string TEXTURES_DIR=media_dir+"textures/";
-    std::string SCRIPTS_DIR=media_dir+"scripts/";
+    std::string textures_dir=media_dir+"textures/";
+    std::string scripts_dir=media_dir+"scripts/";
 
-    boost::filesystem::path textures_dir(TEXTURES_DIR);
-    if (boost::filesystem::create_directories(textures_dir)) {
-        std::cout << "Created " << TEXTURES_DIR << " folder"<< "\n";
+    boost::filesystem::path textures_path(textures_dir);
+    if (boost::filesystem::create_directories(textures_path)) {
+        std::cout << "Created " << textures_dir << " folder"<< "\n";
     }
 
-    boost::filesystem::path scripts_dir(SCRIPTS_DIR);
-    if (boost::filesystem::create_directories(scripts_dir)) {
-        std::cout << "Created " << SCRIPTS_DIR << " folder"<< "\n";
+    boost::filesystem::path scripts_path(scripts_dir);
+    if (boost::filesystem::create_directories(scripts_path)) {
+        std::cout << "Created " << scripts_dir << " folder"<< "\n";
     }
 
     /* Initialize random device */
@@ -336,33 +344,33 @@ int main(int argc, char **argv)
         if (type=="all")
         {
             /* Generate flat texture */
-            generateFlatTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+            generateFlatTexture(pattern_generation, resolution, i, textures_dir, scripts_dir);
             /* Generate chess texture */
-            generateChessTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+            generateChessTexture(pattern_generation, resolution, i, textures_dir, scripts_dir);
             /* Generate gradient texture */
-            generateGradientTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+            generateGradientTexture(pattern_generation, resolution, i, textures_dir, scripts_dir);
             /* Generate perlin noise texture */
-            generatePerlinTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+            generatePerlinTexture(pattern_generation, resolution, i, textures_dir, scripts_dir);
         }
         else if (type=="perlin")
         {
             /* Generate perlin noise texture */
-            generatePerlinTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+            generatePerlinTexture(pattern_generation, resolution, i, textures_dir, scripts_dir);
         }
         else if (type=="gradient")
         {
             /* Generate gradient texture */
-            generateGradientTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+            generateGradientTexture(pattern_generation, resolution, i, textures_dir, scripts_dir);
         }
         else if (type=="flat")
         {
             /* Generate flat texture */
-            generateFlatTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+            generateFlatTexture(pattern_generation, resolution, i, textures_dir, scripts_dir);
         }
         else if (type=="chess")
         {
             /* Generate chess texture */
-            generateChessTexture(pattern_generation, resolution, i, TEXTURES_DIR, SCRIPTS_DIR);
+            generateChessTexture(pattern_generation, resolution, i, textures_dir, scripts_dir);
         }
         else
         {

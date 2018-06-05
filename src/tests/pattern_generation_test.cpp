@@ -214,7 +214,7 @@ void generateGradientTexture(PatternGeneration & pattern_generation,
     std::string & scripts_dir)
 {
     std::string material_name, img_name, img_filename;
-    genNames("chess_", i, textures_dir, material_name, img_name, img_filename);
+    genNames("gradient_", i, textures_dir, material_name, img_name, img_filename);
     genScript(material_name, img_name, scripts_dir);
     if (!GENERATE_IMG) return;
 

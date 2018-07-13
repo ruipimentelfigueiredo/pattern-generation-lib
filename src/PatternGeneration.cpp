@@ -9,6 +9,7 @@ cv::Scalar PatternGeneration::getRandomColor()
 {
     std::random_device rd;
     std::mt19937 mt(rd());
+
     return cv::Scalar( (*dist)(mt)%255, (*dist)(mt)%255, (*dist)(mt)%255);
 }
 
@@ -22,6 +23,7 @@ cv::Mat PatternGeneration::getChessTexture(
     cv::Mat chessBoard(imageSize,imageSize,CV_8UC3,cv::Scalar::all(0));
 
     cv::Scalar color_;
+    
 
     for (int i=0;i<imageSize;i=i+blockSize){
         for (int j=0;j<imageSize;j=j+blockSize){
@@ -37,13 +39,15 @@ cv::Mat PatternGeneration::getChessTexture(
         }
     }
 
+
+    cvtColor(chessBoard,chessBoard,cv::COLOR_Lab2RGB); // converting back to 8U with scaling
     return chessBoard;
 }
 
 cv::Mat PatternGeneration::getFlatTexture(const cv::Scalar & color, const int & imageSize)
 {
     cv::Mat flat(imageSize,imageSize,CV_8UC3,color);
-
+    cvtColor(flat,flat,cv::COLOR_Lab2RGB); // converting back to 8U with scaling
     return flat;
 }
 
@@ -85,6 +89,8 @@ cv::Mat PatternGeneration::getGradientTexture(
                 gradient.at<cv::Vec3b>(y,x) = val;
         }
     }
+
+    cvtColor(gradient,gradient,cv::COLOR_Lab2RGB); // converting back to 8U with scaling
     return gradient;
 }
 
@@ -149,5 +155,6 @@ cv::Mat PatternGeneration::getPerlinNoiseTexture(
             image.at<cv::Vec3b>(i,j) = val;
         }
     }
+    cvtColor(image,image,cv::COLOR_Lab2RGB); // converting back to 8U with scaling
     return image;
 }

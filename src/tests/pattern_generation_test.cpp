@@ -61,7 +61,7 @@
 #define GENERATE_IMG    true
 
 /// Default number of textures
-#define ARG_TEXTURES_DEFAULT        10
+#define ARG_TEXTURES_DEFAULT        100
 /// Default index of the first texture
 #define ARG_START_DEFAULT           0
 /// Default image directory
@@ -194,7 +194,7 @@ void generateChessTexture(PatternGeneration & pattern_generation,
     cv::Mat chess_board = pattern_generation.getChessTexture(chess_color_1, chess_color_2, block_size, squares);
 
     // Convert to HSV
-    cv::applyColorMap(chess_board, chess_board, cv::COLORMAP_HSV);
+    //cv::applyColorMap(chess_board, chess_board, cv::COLORMAP_LAB);
 
     if (!cv::imwrite(img_filename, chess_board)){
         std::cout << "[ERROR] Could not save " << img_filename <<
@@ -204,6 +204,7 @@ void generateChessTexture(PatternGeneration & pattern_generation,
 
     if (SHOW_IMGS)
         cv::imshow("Chess board", chess_board);
+
 };
 
 //////////////////////////////////////////////////
